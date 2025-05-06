@@ -36,7 +36,6 @@ class PyraWidget(QOpenGLWidget):
         self._draw_pyramid()
 
     def _draw_pyramid(self):
-        # Малювання піраміди
         pass
 
     def mousePressEvent(self, event):
