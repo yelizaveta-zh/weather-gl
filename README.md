@@ -1,6 +1,3 @@
-# PyQt6 OpenGL Weather App Nevelykyy desktopnyy dodatok na Python z vykorystannyam PyQt6 i OpenGL dlya vidobrazhennya obertovoyi 3D-piramidy ta vidzhetu z potochnoyu pohodoyu. ## Funktsional - **3D-piramida**: obertannya mysheyu, masshtab kolishchatkom, vybir kolʹoru, skydannya polozhennya. - **Pohoda**: otrymannya ta vidobrazhennya danykh z wttr.in (Kyyiv), avtomatychne onovlennya kozhni 10 khv. ## Struktura proyektu
-Показати більше
-394 / 5 000
 # PyQt6 OpenGL Weather App
 
 A small desktop application in Python using PyQt6 and OpenGL to display a rotating 3D pyramid and a widget with the current weather.
