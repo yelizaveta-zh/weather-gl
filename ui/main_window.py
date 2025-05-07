@@ -1,16 +1,15 @@
-from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import (
-    QMainWindow,
-    QWidget,
-    QHBoxLayout,
-    QVBoxLayout,
-    QPushButton,
+    QColorDialog,
     QGroupBox,
-    QLabel,
+    QHBoxLayout,
+    QMainWindow,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from gl.volume_widget import PyraWidget
-from services.weather_service import WeatherService
+from gl.piramida_widget import PyraWidget
+from ui.weather_widget import WeatherWidget
 
 
 class MainWindow(QMainWindow):
@@ -23,46 +22,27 @@ class MainWindow(QMainWindow):
         central = QWidget(self)
         layout = QHBoxLayout(central)
 
-        self.gl_widget = PyraWidget(self)
-        btn_reset = QPushButton(self.tr("Скинути позицію"))
+        pyramid_group = QGroupBox(self.tr("3D Pyramid"))
+        vbox_gl = QVBoxLayout(pyramid_group)
+        self.gl_widget = PyraWidget(self, base_size=1.0, height=1.2)
+        btn_reset = QPushButton(self.tr("Reset position"))
         btn_reset.clicked.connect(self.gl_widget.reset_view)
-        vbox_gl = QVBoxLayout()
+        btn_color = QPushButton(self.tr("Choose the color"))
+        btn_color.clicked.connect(self.choose_color)
         vbox_gl.addWidget(self.gl_widget)
         vbox_gl.addWidget(btn_reset)
+        vbox_gl.addWidget(btn_color)
 
-        # Панель погоди
-        weather_box = QGroupBox(self.tr("Погода"))
-        vbox_weather = QVBoxLayout()
-        self.label_city = QLabel()
-        self.label_temp = QLabel()
-        self.label_desc = QLabel()
-        self.label_icon = QLabel()
-        btn_update = QPushButton(self.tr("Оновити погоду"))
-        btn_update.clicked.connect(self._update_weather)
+        weather_group = QGroupBox(self.tr("Weather"))
+        weather_widget = WeatherWidget(self)
+        vbox_weather = QVBoxLayout(weather_group)
+        vbox_weather.addWidget(weather_widget)
 
-        for w in (
-            self.label_city,
-            self.label_icon,
-            self.label_temp,
-            self.label_desc,
-            btn_update,
-        ):
-            vbox_weather.addWidget(w)
-        weather_box.setLayout(vbox_weather)
-
-        layout.addLayout(vbox_gl)
-        layout.addWidget(weather_box)
+        layout.addWidget(pyramid_group, stretch=1)
+        layout.addWidget(weather_group, stretch=0)
         self.setCentralWidget(central)
 
-    def _setup_timer(self):
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self._update_weather)
-        self.timer.start(10 * 60 * 1000)
-        self._update_weather()
-
-    def _update_weather(self):
-        data = WeatherService().get_current_weather()
-        self.label_city.setText(data["city"])
-        self.label_temp.setText(f"{data['temp']} °C")
-        self.label_desc.setText(data["description"])
-        self.label_icon.setText(data["icon"])
+    def choose_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.gl_widget.set_color(color)
