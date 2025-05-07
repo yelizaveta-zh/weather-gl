@@ -17,6 +17,10 @@ class WeatherWidget(QWidget):
         self.label_temp = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
         self.label_desc = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
         self.label_icon = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
+        for label in (self.label_city, self.label_temp, self.label_desc):
+            font = label.font()
+            font.setPointSize(14)
+            label.setFont(font)
         for item in (
                 self.label_city,
                 self.label_icon,
