@@ -1,15 +1,15 @@
 from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import (
-    QMainWindow,
-    QWidget,
-    QHBoxLayout,
-    QVBoxLayout,
-    QPushButton,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
+    QMainWindow,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from gl.volume_widget import PyraWidget
+from gl.piramida_widget import PyraWidget
 from services.weather_service import WeatherService
 
 
@@ -24,20 +24,19 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(central)
 
         self.gl_widget = PyraWidget(self)
-        btn_reset = QPushButton(self.tr("Скинути позицію"))
+        btn_reset = QPushButton(self.tr("Reset position"))
         btn_reset.clicked.connect(self.gl_widget.reset_view)
         vbox_gl = QVBoxLayout()
         vbox_gl.addWidget(self.gl_widget)
         vbox_gl.addWidget(btn_reset)
 
-        # Панель погоди
-        weather_box = QGroupBox(self.tr("Погода"))
+        weather_box = QGroupBox(self.tr("Weather"))
         vbox_weather = QVBoxLayout()
         self.label_city = QLabel()
         self.label_temp = QLabel()
         self.label_desc = QLabel()
         self.label_icon = QLabel()
-        btn_update = QPushButton(self.tr("Оновити погоду"))
+        btn_update = QPushButton(self.tr("Reset weather"))
         btn_update.clicked.connect(self._update_weather)
 
         for w in (

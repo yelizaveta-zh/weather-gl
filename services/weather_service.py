@@ -14,4 +14,9 @@ class WeatherService:
             icon = "☀️" if "сон" in desc.lower() else "🌧" if "дощ" in desc.lower() else "🌥"
             return {"city": city, "temp": temp, "description": desc, "icon": icon}
         except Exception:
-            return {"city": city, "temp": "-", "description": "N/A", "icon": "❓"}
+            return {
+                "city": city,
+                "temp": "-",
+                "description": "N/A",
+                "icon": "❓"
+            }

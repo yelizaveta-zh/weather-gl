@@ -1,7 +1,65 @@
+from PyQt6.QtCore import QPoint, Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
-from PyQt6.QtCore import Qt, QPoint
-from OpenGL.GL import *
+
+from OpenGL.GL import (
+    GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
+    GL_DEPTH_TEST,
+    GL_LIGHT0,
+    GL_LIGHTING,
+    GL_POSITION,
+    GL_PROJECTION,
+    GL_MODELVIEW,
+    GL_QUADS,
+    GL_TRIANGLES,
+    glBegin,
+    glClear,
+    glClearColor,
+    glEnable,
+    glEnd,
+    glLightfv,
+    glLoadIdentity,
+    glMatrixMode,
+    glNormal3f,
+    glRotatef,
+    glTranslatef,
+    glVertex3f,
+    glViewport,
+)
 from OpenGL.GLU import gluPerspective
+
+
+def _draw_pyramid():
+    glBegin(GL_QUADS)
+    glNormal3f(0.0, 0.0, -1.0)
+    glVertex3f(-1.0, -1.0, 0.0)
+    glVertex3f(1.0, -1.0, 0.0)
+    glVertex3f(1.0, 1.0, 0.0)
+    glVertex3f(-1.0, 1.0, 0.0)
+    glEnd()
+
+    glBegin(GL_TRIANGLES)
+
+    glNormal3f(0.0, -1.0, 0.707)
+    glVertex3f(-1.0, -1.0, 0.0)
+    glVertex3f(1.0, -1.0, 0.0)
+    glVertex3f(0.0, 0.0, 1.2)
+
+    glNormal3f(1.0, 0.0, 0.707)
+    glVertex3f(1.0, -1.0, 0.0)
+    glVertex3f(1.0, 1.0, 0.0)
+    glVertex3f(0.0, 0.0, 1.2)
+
+    glNormal3f(0.0, 1.0, 0.707)
+    glVertex3f(1.0, 1.0, 0.0)
+    glVertex3f(-1.0, 1.0, 0.0)
+    glVertex3f(0.0, 0.0, 1.2)
+
+    glNormal3f(-1.0, 0.0, 0.707)
+    glVertex3f(-1.0, 1.0, 0.0)
+    glVertex3f(-1.0, -1.0, 0.0)
+    glVertex3f(0.0, 0.0, 1.2)
+    glEnd()
 
 
 class PyraWidget(QOpenGLWidget):
@@ -19,11 +77,11 @@ class PyraWidget(QOpenGLWidget):
         glEnable(GL_LIGHT0)
         glLightfv(GL_LIGHT0, GL_POSITION, [0, 0, 10, 1])
 
-    def resizeGL(self, w, h):
-        glViewport(0, 0, w, h)
+    def resizeGL(self, wght, hght):
+        glViewport(0, 0, wght, hght)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        aspect = w / h if h else 1
+        aspect = wght / hght if hght else 1
         gluPerspective(45.0, aspect, 0.1, 100.0)
         glMatrixMode(GL_MODELVIEW)
 
@@ -33,15 +91,12 @@ class PyraWidget(QOpenGLWidget):
         glTranslatef(0, 0, self.distance)
         glRotatef(self.x_rot / 16.0, 1, 0, 0)
         glRotatef(self.y_rot / 16.0, 0, 1, 0)
-        self._draw_pyramid()
+        _draw_pyramid()
 
-    def _draw_pyramid(self):
-        pass
-
-    def mousePressEvent(self, event):
+    def mouse_press_event(self, event):
         self.last_pos = event.position().toPoint()
 
-    def mouseMoveEvent(self, event):
+    def mouse_move_event(self, event):
         dx = event.position().x() - self.last_pos.x()
         dy = event.position().y() - self.last_pos.y()
         if event.buttons() & Qt.MouseButton.LeftButton:
@@ -50,7 +105,7 @@ class PyraWidget(QOpenGLWidget):
         self.last_pos = event.position().toPoint()
         self.update()
 
-    def wheelEvent(self, event):
+    def wheel_event(self, event):
         delta = event.angleDelta().y()
         self.distance += -delta / 240.0
         self.update()
