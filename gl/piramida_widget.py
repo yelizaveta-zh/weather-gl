@@ -98,10 +98,10 @@ class PyraWidget(QOpenGLWidget):
             glVertex3f(0, 0, h)
         glEnd()
 
-    def mouse_press_event(self, event):
+    def mousePressEvent(self, event):
         self.last_pos = event.position().toPoint()
 
-    def mouse_move_event(self, event):
+    def mouseMoveEvent(self, event):
         dx = event.position().x() - self.last_pos.x()
         dy = event.position().y() - self.last_pos.y()
         if event.buttons() & Qt.MouseButton.LeftButton:
@@ -110,7 +110,7 @@ class PyraWidget(QOpenGLWidget):
         self.last_pos = event.position().toPoint()
         self.update()
 
-    def wheel_event(self, event):
+    def wheelEvent(self, event):
         delta = event.angleDelta().y()
         self.distance += -delta / 240.0
         self.update()
