@@ -1,3 +1,4 @@
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QColorDialog,
     QGroupBox,
@@ -23,23 +24,27 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(central)
 
         pyramid_group = QGroupBox(self.tr("3D Pyramid"))
+        pyramid_group.setFont(QFont("Arial", 12))
         vbox_gl = QVBoxLayout(pyramid_group)
         self.gl_widget = PyraWidget(self, base_size=1.0, height=1.2)
         btn_reset = QPushButton(self.tr("Reset position"))
+        btn_reset.setFont(QFont("Arial", 10))
         btn_reset.clicked.connect(self.gl_widget.reset_view)
         btn_color = QPushButton(self.tr("Choose the color"))
+        btn_color.setFont(QFont("Arial", 10))
         btn_color.clicked.connect(self.choose_color)
         vbox_gl.addWidget(self.gl_widget)
         vbox_gl.addWidget(btn_reset)
         vbox_gl.addWidget(btn_color)
 
         weather_group = QGroupBox(self.tr("Weather"))
+        weather_group.setFont(QFont("Arial", 12))
         weather_widget = WeatherWidget(self)
         vbox_weather = QVBoxLayout(weather_group)
         vbox_weather.addWidget(weather_widget)
 
-        layout.addWidget(pyramid_group, stretch=1)
-        layout.addWidget(weather_group, stretch=0)
+        layout.addWidget(pyramid_group, stretch=2)
+        layout.addWidget(weather_group, stretch=1)
         self.setCentralWidget(central)
 
     def choose_color(self):

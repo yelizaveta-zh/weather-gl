@@ -1,11 +1,14 @@
+from OpenGL.raw.GL.VERSION.GL_1_0 import GL_COLOR_MATERIAL, glColorMaterial
 from PyQt6.QtCore import QPoint, Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
 from OpenGL.GL import (
+    GL_AMBIENT_AND_DIFFUSE,
     GL_COLOR_BUFFER_BIT,
     GL_DEPTH_BUFFER_BIT,
     GL_DEPTH_TEST,
+    GL_FRONT_AND_BACK,
     GL_LIGHT0,
     GL_LIGHTING,
     GL_POSITION,
@@ -55,6 +58,8 @@ class PyraWidget(QOpenGLWidget):
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glLightfv(GL_LIGHT0, GL_POSITION, [0, 0, 10, 1])
+        glEnable(GL_COLOR_MATERIAL)
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
 
     def resizeGL(self, wght, hght):
         glViewport(0, 0, wght, hght)
