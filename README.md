@@ -3,8 +3,16 @@
 A small desktop application in Python using PyQt6 and OpenGL to display a rotating 3D pyramid and a widget with the current weather.
 
 ## Functionality
-- **3D pyramid**: rotate with the mouse, zoom with the wheel, choose a color, reset position.
-- **Weather**: receive and display data from wttr.in (Kyiv), automatic update every 10 minutes.
+- **3D pyramid**:
+  - rotate with the mouse;
+  - zoom with the wheel;
+  - choose a color;
+  - reset position;
+  - upload of any model (.obj file).
+- **Weather**:
+  - receive and display data from wttr.in (Kyiv);
+  - automatic update every 10 minutes;
+  - update with button.
 
 ## Project structure
 ```text
@@ -34,3 +42,8 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+## Interface
+![img.png](img.png)
+
+![img_1.png](img_1.png)

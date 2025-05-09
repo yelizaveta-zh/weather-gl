@@ -6,7 +6,8 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QVBoxLayout,
-    QWidget, QFileDialog,
+    QWidget,
+    QFileDialog,
 )
 
 from gl.piramida_widget import PyraWidget
@@ -26,7 +27,7 @@ class MainWindow(QMainWindow):
         pyramid_group = QGroupBox(self.tr("3D Pyramid"))
         pyramid_group.setFont(QFont("Arial", 12))
         vbox_gl = QVBoxLayout(pyramid_group)
-        self.gl_widget = PyraWidget(self, base_size=0.7, height=1.4)
+        self.gl_widget = PyraWidget(self, base_size=0.7, height=1.5)
 
         btn_reset = QPushButton(self.tr("Reset position"))
         btn_reset.setFont(QFont("Arial", 10))

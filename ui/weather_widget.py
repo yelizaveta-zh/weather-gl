@@ -1,5 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
+from PyQt6.QtCore import Qt, QTimer, QSize
 
 from services.weather_service import WeatherService
 
@@ -28,6 +29,10 @@ class WeatherWidget(QWidget):
                 self.label_desc
         ):
             layout.addWidget(item)
+        btn_update = QPushButton(self.tr("Update weather"))
+        btn_update.setFont(QFont("Arial", 10))
+        btn_update.clicked.connect(self.update_weather)
+        layout.addWidget(btn_update)
 
     def _setup_timer(self):
         timer = QTimer(self)
