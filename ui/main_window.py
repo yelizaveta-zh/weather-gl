@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QVBoxLayout,
-    QWidget,
+    QWidget, QFileDialog,
 )
 
 from gl.piramida_widget import PyraWidget
@@ -26,16 +26,24 @@ class MainWindow(QMainWindow):
         pyramid_group = QGroupBox(self.tr("3D Pyramid"))
         pyramid_group.setFont(QFont("Arial", 12))
         vbox_gl = QVBoxLayout(pyramid_group)
-        self.gl_widget = PyraWidget(self, base_size=1.0, height=1.2)
+        self.gl_widget = PyraWidget(self, base_size=0.7, height=1.4)
+
         btn_reset = QPushButton(self.tr("Reset position"))
         btn_reset.setFont(QFont("Arial", 10))
         btn_reset.clicked.connect(self.gl_widget.reset_view)
+
         btn_color = QPushButton(self.tr("Choose the color"))
         btn_color.setFont(QFont("Arial", 10))
         btn_color.clicked.connect(self.choose_color)
+
+        btn_load = QPushButton(self.tr("Load the model"))
+        btn_load.setFont(QFont("Arial", 10))
+        btn_load.clicked.connect(self.load_model)
+
         vbox_gl.addWidget(self.gl_widget)
         vbox_gl.addWidget(btn_reset)
         vbox_gl.addWidget(btn_color)
+        vbox_gl.addWidget(btn_load)
 
         weather_group = QGroupBox(self.tr("Weather"))
         weather_group.setFont(QFont("Arial", 12))
@@ -51,3 +59,10 @@ class MainWindow(QMainWindow):
         color = QColorDialog.getColor()
         if color.isValid():
             self.gl_widget.set_color(color)
+
+    def load_model(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self, self.tr("Choose OBJ file"), "", "OBJ Files (*.obj)"
+        )
+        if filename:
+            self.gl_widget.load_obj(filename)
