@@ -35,8 +35,7 @@ class WeatherService:
             )
             return self._default_response(city, "No Connection")
         except HTTPError as http_err:
-            status = http_err.response.status_code \
-                if http_err.response else "Unknown"
+            status = http_err.response.status_code if http_err.response else "Unknown"
             logger.error(f"HTTP {status} when receiving weather for {city}")
             return self._default_response(city, f"HTTP {status}")
         except Exception as e:
