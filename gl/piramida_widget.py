@@ -68,9 +68,7 @@ class PyraWidget(QOpenGLWidget):
                     for v in parts[1:]:
                         vals = v.split("//")
                         vi = int(vals[0]) - 1
-                        ni = int(
-                            vals[1]
-                        ) - 1 if len(vals) > 1 and vals[1] else None
+                        ni = int(vals[1]) - 1 if len(vals) > 1 and vals[1] else None
                         face.append((vi, ni))
                     self.faces.append(face)
         self.update()
@@ -106,6 +104,13 @@ class PyraWidget(QOpenGLWidget):
         glRotatef(self.x_rot / 16.0, 1, 0, 0)
         glRotatef(self.y_rot / 16.0, 0, 1, 0)
         glColor3f(*self.color)
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glLoadIdentity()
+        glTranslatef(0, 0, self.distance)
+        glRotatef(self.x_rot / 16.0, 1, 0, 0)
+        glRotatef(self.y_rot / 16.0, 0, 1, 0)
+
         if self.faces:
             self._draw_model()
         else:
@@ -137,8 +142,6 @@ class PyraWidget(QOpenGLWidget):
         glEnd()
 
     def _draw_model(self):
-        s = self.base_size
-        h = self.height
         glBegin(GL_TRIANGLES)
         for face in self.faces:
             for vi, ni in face:
@@ -147,18 +150,6 @@ class PyraWidget(QOpenGLWidget):
                     glNormal3f(nx, ny, nz)
                 x, y, z = self.vertices[vi]
                 glVertex3f(x, y, z)
-        glEnd()
-        glBegin(GL_TRIANGLES)
-        normals = [(0, -1, 1), (1, 0, 1), (0, 1, 1), (-1, 0, 1)]
-        verts = [(-s, -s), (s, -s), (s, s), (-s, s)]
-        for i in range(4):
-            nx, ny, nz = normals[i]
-            glNormal3f(nx, ny, nz)
-            x1, y1 = verts[i]
-            x2, y2 = verts[(i + 1) % 4]
-            glVertex3f(x1, y1, 0)
-            glVertex3f(x2, y2, 0)
-            glVertex3f(0, 0, h)
         glEnd()
 
     def mousePressEvent(self, event):

@@ -62,8 +62,6 @@ class MainWindow(QMainWindow):
             self.gl_widget.set_color(color)
 
     def load_model(self):
-        filename, _ = QFileDialog.getOpenFileName(
-            self, self.tr("Choose OBJ file"), "", "OBJ Files (*.obj)"
-        )
+        filename, _ = QFileDialog.getOpenFileName(self, self.tr("Choose OBJ file"), "", "OBJ Files (*.obj)")
         if filename:
             self.gl_widget.load_obj(filename)

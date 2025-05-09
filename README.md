@@ -29,6 +29,11 @@ weather_app/
 ├── services/              # Services package
 │   ├── init.py
 │   └── weather_service.py # Weather fetching logic and error handling
+├── tests/                 # All tests for project
+│   └── test_weather.py    # Tests for weather API
+├── media/                 # Media files
+│   ├── img.png
+│   └── img1.png           # Screenshots for README.md
 ├── requirements.txt       # Dependencies
 └── .gitignore             # Ignored files
 ```
@@ -44,6 +49,6 @@ python main.py
 ```
 
 ## Interface
-![img.png](img.png)
+![img.png](media/img.png)
 
-![img_1.png](img_1.png)
+![img_1.png](media/img_1.png)

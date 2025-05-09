@@ -1,6 +1,8 @@
 import pytest
+
 import requests
-from requests.exceptions import HTTPError, Timeout, ConnectionError
+from requests.exceptions import HTTPError, ConnectionError
+
 from services.weather_service import WeatherService, ICON_MAP
 
 
