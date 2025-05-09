@@ -66,9 +66,11 @@ class PyraWidget(QOpenGLWidget):
                 elif parts[0] == "f":
                     face = []
                     for v in parts[1:]:
-                        vals = v.split('//')
+                        vals = v.split("//")
                         vi = int(vals[0]) - 1
-                        ni = int(vals[1]) - 1 if len(vals) > 1 and vals[1] else None
+                        ni = int(
+                            vals[1]
+                        ) - 1 if len(vals) > 1 and vals[1] else None
                         face.append((vi, ni))
                     self.faces.append(face)
         self.update()
