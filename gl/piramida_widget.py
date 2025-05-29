@@ -1,4 +1,5 @@
-from OpenGL.raw.GL.VERSION.GL_1_0 import GL_COLOR_MATERIAL, glColorMaterial
+import logging
+
 from PyQt6.QtCore import QPoint, Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
@@ -32,6 +33,10 @@ from OpenGL.GL import (
     glViewport,
 )
 from OpenGL.GLU import gluPerspective
+from OpenGL.raw.GL.VERSION.GL_1_0 import GL_COLOR_MATERIAL, glColorMaterial
+
+
+logger = logging.getLogger(__name__)
 
 
 class PyraWidget(QOpenGLWidget):
@@ -48,29 +53,11 @@ class PyraWidget(QOpenGLWidget):
         self.normals = []
         self.faces = []
 
-    def load_obj(self, filepath: str):
-        self.vertices.clear()
-        self.normals.clear()
-        self.faces.clear()
-        with open(filepath, "r") as f:
-            for line in f:
-                parts = line.strip().split()
-                if not parts:
-                    continue
-                if parts[0] == "v":
-                    _, x, y, z = parts
-                    self.vertices.append((float(x), float(y), float(z)))
-                elif parts[0] == "vn":
-                    _, x, y, z = parts
-                    self.normals.append((float(x), float(y), float(z)))
-                elif parts[0] == "f":
-                    face = []
-                    for v in parts[1:]:
-                        vals = v.split("//")
-                        vi = int(vals[0]) - 1
-                        ni = int(vals[1]) - 1 if len(vals) > 1 and vals[1] else None
-                        face.append((vi, ni))
-                    self.faces.append(face)
+    def set_model_data(self, vertices, normals, faces):
+        self.vertices = vertices
+        self.normals = normals
+        self.faces = faces
+        logger.info(f"Model data set: verts={len(vertices)}, faces={len(faces)}")
         self.update()
 
     def set_color(self, qcolor: QColor):
@@ -98,6 +85,7 @@ class PyraWidget(QOpenGLWidget):
         glMatrixMode(GL_MODELVIEW)
 
     def paintGL(self):
+        start = __import__("time").time()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         glTranslatef(0, -self.base_size * 0.5, self.distance)
@@ -105,16 +93,20 @@ class PyraWidget(QOpenGLWidget):
         glRotatef(self.y_rot / 16.0, 0, 1, 0)
         glColor3f(*self.color)
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glLoadIdentity()
-        glTranslatef(0, 0, self.distance)
-        glRotatef(self.x_rot / 16.0, 1, 0, 0)
-        glRotatef(self.y_rot / 16.0, 0, 1, 0)
-
         if self.faces:
-            self._draw_model()
+            glBegin(GL_TRIANGLES)
+            for face in self.faces:
+                for vi, ni in face:
+                    if ni is not None:
+                        nx, ny, nz = self.normals[ni]
+                        glNormal3f(nx, ny, nz)
+                    x, y, z = self.vertices[vi]
+                    glVertex3f(x, y, z)
+            glEnd()
         else:
             self._draw_pyramid()
+        elapsed = (__import__("time").time() - start) * 1000
+        logger.debug(f"PaintGL took {elapsed:.2f} ms")
 
     def _draw_pyramid(self):
         s = self.base_size
