@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
     def on_model_loaded(self, data):
         vertices, normals, faces = data
         self.gl_widget.set_model_data(vertices, normals, faces)
+        self.gl_widget.upload_model_to_gpu()
 
     def on_model_error(self, message):
         logger.error(f"Failed to load model: {message}")
