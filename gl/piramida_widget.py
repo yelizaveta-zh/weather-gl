@@ -81,8 +81,29 @@ class PyraWidget(QOpenGLWidget):
         self.normals = normals
         self.faces = faces
         logger.info(f"Model data set: verts={len(vertices)}, faces={len(faces)}")
+
+        if not self._validate_model_data():
+            logger.error("Model data validation failed")
+            return
+
         self.upload_model_to_gpu()
         self.update()
+
+    def _validate_model_data(self):
+        """Validate the model data format"""
+        if not self.vertices or not self.faces:
+            logger.error("Vertices or faces are empty")
+            return False
+
+        if len(self.vertices[0]) != 3:
+            logger.error("Vertices must be 3D (x, y, z)")
+            return False
+
+        if self.normals and len(self.normals) != len(self.vertices):
+            logger.error(f"Normals count ({len(self.normals)}) doesn't match vertices count ({len(self.vertices)})")
+            return False
+
+        return True
 
     def set_color(self, qcolor: QColor):
         self.color = (qcolor.redF(), qcolor.greenF(), qcolor.blueF())
@@ -116,48 +137,113 @@ class PyraWidget(QOpenGLWidget):
         glRotatef(self.y_rot / 16.0, 0, 1, 0)
         glColor3f(*self.color)
 
-        if self.vbo_vertices and self.vbo_indices:
+        if self.vbo_vertices and self.vbo_indices and self.vertices:
+            self._render_with_vbo()
+        else:
+            self._draw_pyramid()
+
+    def _render_with_vbo(self):
+        try:
             glBindBuffer(GL_ARRAY_BUFFER, self.vbo_vertices)
             glEnableClientState(GL_VERTEX_ARRAY)
             glVertexPointer(3, GL_FLOAT, 6 * 4, ctypes.c_void_p(0))
-            glEnableClientState(GL_NORMAL_ARRAY)
-            glNormalPointer(GL_FLOAT, 6 * 4, ctypes.c_void_p(3 * 4))
+
+            if self.normals:
+                glEnableClientState(GL_NORMAL_ARRAY)
+                glNormalPointer(GL_FLOAT, 6 * 4, ctypes.c_void_p(3 * 4))
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.vbo_indices)
             glDrawElements(GL_TRIANGLES, len(self.faces) * 3, GL_UNSIGNED_INT, None)
 
             glDisableClientState(GL_VERTEX_ARRAY)
-            glDisableClientState(GL_NORMAL_ARRAY)
+            if self.normals:
+                glDisableClientState(GL_NORMAL_ARRAY)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-        else:
-            self._draw_pyramid()
+        except Exception as e:
+            logger.exception(f"VBO rendering error: {e}")
 
     def upload_model_to_gpu(self):
-        verts = np.array(self.vertices, dtype=np.float32)
-        norms = np.array(self.normals, dtype=np.float32)
-        data = np.empty(len(verts) * 6, dtype=np.float32)
-        data[0::6], data[1::6], data[2::6] = verts.T
-        data[3::6], data[4::6], data[5::6] = norms.T
+        try:
+            if not self.vertices and not self.faces:
+                logger.warning("No vertices or faces found")
+                return
 
-        idxs = []
+            verts = np.array(self.vertices, dtype=np.float32)
+
+            if self.normals:
+                norms = np.array(self.normals, dtype=np.float32)
+            else:
+                norms = self._generate_normals()
+
+            data = np.empty(len(verts) * 6, dtype=np.float32)
+            data[:, :3] = verts
+            data[:, 3:] = norms
+            data = data.flatten()
+
+            idxs = []
+            for face in self.faces:
+                if isinstance(face[0], (list, tuple)) and len(face[0]) == 2:
+                    for vi, _ in face:
+                        idxs.append(vi)
+                else:
+                    for vi in face:
+                        idxs.append(vi)
+
+            idxs = np.array(idxs, dtype=np.uint32)
+
+            max_idx = np.max(idxs) if len(idxs) > 0 else 0
+            if max_idx >= len(self.vertices):
+                logger.error(f"Face index {max_idx} exceeds vertex count {len(self.vertices)}")
+                return
+
+            self.vbo_vertices = glGenBuffers(1)
+            glBindBuffer(GL_ARRAY_BUFFER, self.vbo_vertices)
+            glBufferData(GL_ARRAY_BUFFER, data.nbytes, data, GL_STATIC_DRAW)
+
+            self.vbo_indices = glGenBuffers(1)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.vbo_indices)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxs.nbytes, idxs, GL_STATIC_DRAW)
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+            logger.info(f"Uploaded model to GPU: {len(verts)} vertices, {len(idxs)//3} triangles")
+
+        except Exception as e:
+            logger.exception(f"Error uploading model to GPU: {e}")
+
+    def _generate_normals(self):
+        logger.info("Generating vertex normals")
+        normals = np.zeros((len(self.vertices), 3), dtype=np.float32)
+
         for face in self.faces:
-            for vi, _ in face:
-                idxs.append(vi)
-        idxs = np.array(idxs, dtype=np.uint32)
+            if len(face) >= 3:
+                if isinstance(face[0], (list, tuple)):
+                    v_indices = [vi for vi, _ in face[:3]]
+                else:
+                    v_indices = face[:3]
 
-        self.vbo_vertices = glGenBuffers(1)
-        glBindBuffer(GL_ARRAY_BUFFER, self.vbo_vertices)
-        glBufferData(GL_ARRAY_BUFFER, data.nbytes, data, GL_STATIC_DRAW)
+                v0, v1, v2 = [self.vertices[i] for i in v_indices]
+                edge1 = np.array(v1) - np.array(v0)
+                edge2 = np.array(v2) - np.array(v0)
+                face_normal = np.cross(edge1, edge2)
 
-        self.vbo_indices = glGenBuffers(1)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.vbo_indices)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxs.nbytes, idxs, GL_STATIC_DRAW)
+                norm = np.linalg.norm(face_normal)
+                if norm > 0:
+                    face_normal /= norm
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+                for vi in v_indices:
+                    normals[vi] += face_normal
 
-        logger.info("Uploaded model to GPU buffers")
+        for i in range(len(normals)):
+            norm = np.linalg.norm(normals[i])
+            if norm > 0:
+                normals[i] /= norm
+            else:
+                normals[i] = [0, 0, 1]
+
+        return normals
 
     def _draw_pyramid(self):
         s = self.base_size
@@ -176,7 +262,8 @@ class PyraWidget(QOpenGLWidget):
         verts = [(-s, -s), (s, -s), (s, s), (-s, s)]
         for i in range(4):
             nx, ny, nz = normals[i]
-            glNormal3f(nx, ny, nz)
+            norm = (nx*nx + ny*ny + nz*nz) ** 0.5
+            glNormal3f(nx/norm, ny/norm, nz/norm)
             x1, y1 = verts[i]
             x2, y2 = verts[(i + 1) % 4]
             glVertex3f(x1, y1, 0)
