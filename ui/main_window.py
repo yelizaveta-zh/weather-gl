@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ModelLoader(QThread):
-    loaded = pyqtSignal(object)
+    loaded = pyqtSignal(tuple)
     error = pyqtSignal(str)
 
     def __init__(self, filepath: str):
@@ -37,11 +37,13 @@ class ModelLoader(QThread):
                     if not parts:
                         continue
                     if parts[0] == "v":
-                        _, x, y, z = parts
-                        vertices.append([float(x), float(y), float(z)])
+                        if len(parts) >= 4:
+                            _, x, y, z = parts[:4]
+                            vertices.append([float(x), float(y), float(z)])
                     elif parts[0] == "vn":
-                        _, x, y, z = parts
-                        normals.append([float(x), float(y), float(z)])
+                        if len(parts) >= 4:
+                            _, x, y, z = parts
+                            normals.append([float(x), float(y), float(z)])
                     elif parts[0] == "f":
                         face = []
                         for part in parts[1:]:
@@ -49,9 +51,12 @@ class ModelLoader(QThread):
                             vi = int(vals[0]) - 1
                             ni = int(vals[1]) - 1 if len(vals) > 1 else 0
                             face.append([vi, ni])
-                        faces.append(face)
+                        if face:
+                            faces.append(face)
+
             logger.info(f"Model loaded: {self.filepath}, verts={len(vertices)}, faces={len(faces)}")
-            self.loaded.emit(vertices, normals, faces)
+            self.loaded.emit((vertices, normals, faces))
+
         except Exception as e:
             logger.exception(f"Exception loading model: {e}")
             self.error.emit(str(e))
@@ -103,6 +108,15 @@ class MainWindow(QMainWindow):
         if color.isValid():
             self.gl_widget.set_color(color)
 
+    def on_model_loaded(self, data):
+        vertices, normals, faces = data
+        try:
+            self.gl_widget.set_model_data(vertices, normals, faces)
+            self.gl_widget.upload_model_to_gpu()
+            logger.info("Model loaded")
+        except Exception as e:
+            logger.exception(f"Exception loading model: {e}")
+
     def load_model(self):
         filename, _ = QFileDialog.getOpenFileName(
             self, self.tr("Choose OBJ file"), "", "OBJ Files (*.obj)"
@@ -110,14 +124,9 @@ class MainWindow(QMainWindow):
         if not filename:
             return
         self.loader = ModelLoader(filename)
-        self.loader.loaded.connect(self.on_model_load)
+        self.loader.loaded.connect(self.on_model_loaded)
         self.loader.error.connect(self.on_model_error)
         self.loader.start()
-
-    def on_model_loaded(self, data):
-        vertices, normals, faces = data
-        self.gl_widget.set_model_data(vertices, normals, faces)
-        self.gl_widget.upload_model_to_gpu()
 
     def on_model_error(self, message):
         logger.error(f"Failed to load model: {message}")

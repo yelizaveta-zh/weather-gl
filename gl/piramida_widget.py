@@ -176,7 +176,7 @@ class PyraWidget(QOpenGLWidget):
             else:
                 norms = self._generate_normals()
 
-            data = np.empty(len(verts) * 6, dtype=np.float32)
+            data = np.empty((len(verts) * 6), dtype=np.float32)
             data[:, :3] = verts
             data[:, 3:] = norms
             data = data.flatten()
@@ -184,7 +184,8 @@ class PyraWidget(QOpenGLWidget):
             idxs = []
             for face in self.faces:
                 if isinstance(face[0], (list, tuple)) and len(face[0]) == 2:
-                    for vi, _ in face:
+                    for vertex_data in face:
+                        vi = vertex_data[0]
                         idxs.append(vi)
                 else:
                     for vi in face:
